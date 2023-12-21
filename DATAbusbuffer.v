@@ -1,9 +1,11 @@
-module buffer(D[0:7],inta,PCadr[0:7]);
+module buffer(D[0:7],inta,PCadr[0:7],counter[0:1]);
 inout D[0:7];
 input inta;
+parameter CALLCODEMCS=8'b11001101;
 inout PCadr[0:7];
-  if(inta)
-    PCadr=D[0:7];
-  else
-   D[0:7]=8'bZZZZZZZZ;
+always @(negedge inta)
+
+
+
+
 endmodule
