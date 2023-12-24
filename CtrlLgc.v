@@ -16,6 +16,7 @@ module ctrllgc(
   output buff,
   input CLsig,
   output Mask[0:7],
+  input ISR,
 
   );
 reg A[0:14];
@@ -27,7 +28,7 @@ wire rdflg;
 reg bm;
 reg IC4;
 reg SNGL;
-reg wrncntr[0:2];
+reg wrncntr[0:2]=rwadr[0:2]-3'b001;
 reg s;
 reg Rot;
 reg Spec;
@@ -97,7 +98,18 @@ if(~wrflg) begin
    end
   if(wrncntr==110)begin 
     ICW_OCW=D;
-  end   
+  end
+  always@(rdflag) begin 
+    wrncntr=3'b110;
+    Readint=R[0:1];
+    if(R[1])begin 
+      if(R[0])
+      assign D[0:7]=irr;
+      else 
+      assign D[0:7]=isr;
+    end
+    
+  end    
   assign R=ICW_OCW;
   assign Y=ID;
   assign buff=bm;
