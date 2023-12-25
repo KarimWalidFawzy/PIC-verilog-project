@@ -1,26 +1,31 @@
-module CscdeCmprtr(CAS[0:2],SPENn,M,CLsig,Y[0:2])
-inout  CAS[0:2];
-inout Y[0:2];
-if(M)begin
-    case(Y[0:2])
-    3'b111:/* contains the */ CAS[0:2]=3'b111;
-    3'b110:;
-    5:;
-    4:;
-    3:;
-    2:;
-    1:;
-    default CAS=3'b000;
-    endcase
+module CscdeCmprtr(
+    inout CAS[0:2],
+    input SPENn,
+    output CLsig,
+    input Y[0:2],
+    input buff,
+    output S)
+/*Adddress of the slave that was interrupted*/
+reg M;
+reg X[0:2];
+if(~buff)begin
+if(SPENn)
+M=1;
+else
+M=0;
 end
-if(~M)begin
-    if(CAS[0:2]==Y[0:2])begin
-        CLsig=1;
+if(M/*M is equal to D[2] when we extract this info from Ctrllgc*/)begin
+    X[0:2]=Y[0:2];
+    assign CAS[0:2]=X[0:2];
+end
+else begin
+    if(CAS[0:2]==Y[0:2])begin//During pulse 2 of inta
+        CLsig=1;//This signal informs the ctrl lgc to release the ISR address
     end
+    else
+    CLsig=0;
 end
-
-
-reg count[];
+assign S=~M;
 /*
 1. 8259A outputs are master while the inputs are
 slaves 

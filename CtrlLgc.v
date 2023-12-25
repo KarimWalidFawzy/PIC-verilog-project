@@ -16,11 +16,14 @@ module ctrllgc(
   output buff,
   input CLsig,
   output Mask[0:7],
-  input ISR,
-
-  );
+  input isr[0:7],
+  input irr[0:7],
+  output LTIM,
+  input isprior,
+  output eoi,
+  output ar);
 reg A[0:14];
-reg LTIM;
+reg LTI;
 reg uPM;
 reg AEOI;
 wire icwflg;
@@ -33,24 +36,27 @@ reg s;
 reg Rot;
 reg Spec;
 reg L[0:2];
+reg MID[0:2];
 reg EOI;
 reg T[0:4];
 reg Msk[0:7];//Mask register tells which registers are to be Masked 
 reg ICW_OCW[0:7];
 reg Sl[0:7];
 reg ID[0:2];
+reg rdsts[0:7];
 //D[0:2] //Level to be acted upon#
 if(~wrflg) begin
+    en=1;
+    ino=1; 
   always @(negedge wrflg) begin
     //for ICW1
-    en=1;
-    ino=0; 
+    
     ICW_OCW[0:7]=D[0:7];
     case(wrncntr)
     3'b000:begin
     IC4=D[0];//If ICW4 is needed or not
     SNGL=D[1];
-    LTIM=D[3];
+    LTI=D[3];
     A[4:6]=D[5:7];
     end 
     3'b001:begin
@@ -83,7 +89,9 @@ if(~wrflg) begin
     3'b111:;
     3'b110:;
     endcase
+    wrncntr=wrncntr+1;
   end
+  assign rwadr[0:2]=wrncntr[0:2]+3'b001;
   always@(~wrflg)
   if(wrncntr==100)begin 
     ICW_OCW=D;
@@ -99,26 +107,54 @@ if(~wrflg) begin
   if(wrncntr==110)begin 
     ICW_OCW=D;
   end
-  always@(rdflag) begin 
+end
+  assign Mask=Msk;
+  always@(rdflag) begin
+    ino=0;
+    en=1;
+    if(~a0)begin 
     wrncntr=3'b110;
     Readint=R[0:1];
     if(R[1])begin 
-      if(R[0])
-      assign D[0:7]=irr;
-      else 
-      assign D[0:7]=isr;
+      if(R[0])begin  
+      rdsts[0:7]=irr[0:7];
+      assign D[0:7]=rdsts[0:7];
+      end
+      else begin 
+      rdsts=isr[0:7];
+      assign D[0:7]=rdsts[0:7];
+      end
     end
-    
+  end
+  else begin 
+    assign D[0:7]=Msk[0:7];
+  end
   end    
   assign R=ICW_OCW;
+  if(S)
   assign Y=ID;
+  else begin
+  if(Sl & isr)begin
+  encode(Sl,id); 
+  assign Y=id;
+  end
+  end 
   assign buff=bm;
   assign Mask=D;
-  
+  assign LTIM=LTI;
+always @(~inta & ~SNGL & S)begin
+  /*Insert condition for second pulse here */
+  if(CLsig)begin 
+    en=1;
+    encode(isr,MID[0:2]);
+    assign D[3:7]=T[0:4];
+    assign D[0:2]=MID[0:2];
+  end
+end
 //Single or cascade mode 
 //Level trigerred and call adress modes 
-end
-
+assign int=isprior;
+assign ar=Rot;
 
 endmodule
 
