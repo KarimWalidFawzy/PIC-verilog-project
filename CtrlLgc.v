@@ -1,8 +1,8 @@
 module ctrllgc(
   output int,
   input inta,
-  input irrs,
-  input isrs,
+  output irrs,
+  output isrs,
   inout D[0:7],
   output ino,
   output en,
@@ -22,6 +22,7 @@ module ctrllgc(
   input isprior,
   output eoi,
   output ar);
+reg intacntr[0:1];
 reg A[0:14];
 reg LTI;
 reg uPM;
@@ -150,6 +151,20 @@ always @(~inta & ~SNGL & S)begin
     assign D[3:7]=T[0:4];
     assign D[0:2]=MID[0:2];
   end
+end
+always @(posedge inta)begin
+  if(intacntr[1])begin
+    assign en =1;
+    assign ino=0;
+    if(AEOI)begin
+      assign eoi=1;
+    end
+    else begin
+      if(D[7])
+      assign eoi=1;
+    end
+    end
+  intacntr=intacntr+1; 
 end
 //Single or cascade mode 
 //Level trigerred and call adress modes 
