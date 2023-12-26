@@ -1,12 +1,10 @@
 module ctrllgc(
   output int,
   input inta,
-  output irrs,
-  output isrs,
   inout D[0:7],
   output ino,
   output en,
-  output a0,
+  input a0,
   input wrflg,
   input rdflag,
   inout R[0:7],
@@ -21,7 +19,8 @@ module ctrllgc(
   output LTIM,
   input isprior,
   output eoi,
-  output ar);
+  output ar,
+  output reset);
 reg intacntr[0:1];
 reg A[0:14];
 reg LTI;
@@ -32,7 +31,7 @@ wire rdflg;
 reg bm;
 reg IC4;
 reg SNGL;
-reg wrncntr[0:2]=rwadr[0:2]-3'b001;
+reg wrncntr[0:2];
 reg s;
 reg Rot;
 reg Spec;
@@ -154,6 +153,7 @@ always @(~inta & ~SNGL & S)begin
 end
 always @(posedge inta)begin
   if(intacntr[1])begin
+    assign reset=1;
     assign en =1;
     assign ino=0;
     if(AEOI)begin
