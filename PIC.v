@@ -9,7 +9,7 @@ module Intel8257A(
     input IR[0:7],
     output INT,
     input NSP_EN);
-wire PCadr[0:7];
+reg PCadr[0:7];
 wire en;
 wire ino;
 buffer(D,PCadr,en,ino);
