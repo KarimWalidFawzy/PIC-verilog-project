@@ -160,7 +160,7 @@ always @(posedge inta)begin
       assign eoi=1;
     end
     else begin
-      if(D[7])
+      if(EOI)
       assign eoi=1;
     end
     end
