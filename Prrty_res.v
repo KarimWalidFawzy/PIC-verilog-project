@@ -25,6 +25,7 @@ module Priority_resolver(
           end 
   end
   always @(irr) begin
+    if(fn)
       encode(irr_masked,highestprty);
     if(highestprty<priorityisr)begin 
     priorityisr=highestprty;
