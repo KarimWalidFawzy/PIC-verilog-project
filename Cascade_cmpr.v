@@ -1,10 +1,10 @@
 module CscdeCmprtr(
-    inout CAS[0:2],
+    inout [0:2] CAS,
     input SPENn,
     output CLsig,
-    input Y[0:2],
+    input [0:2] Y,
     input buff,
-    output S)
+    output S);
 /*Adddress of the slave that was interrupted*/
 reg M;
 reg X[0:2];
