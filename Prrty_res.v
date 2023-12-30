@@ -9,16 +9,11 @@ module Priority_resolver(
   input inta);
   reg [0:7] irr_masked;
   reg [0:7] placeholder;
-  irr_masked = irr & ~ imr;
-  reg highestprty[0:2];
-  reg decoded[0:7];
-  reg priorityisr[0:2];
-  always @ begin
-    if(fn & ~ar)begin 
-      encode(irr_masked,highestprty);
-    end
-    else begin 
-      if(ar) begin
+  irr_masked=irr&(~imr);
+  reg [0:2] highestprty;
+  reg [0:7] decoded;
+  reg [0:2] priorityisr;
+  if(ar) begin 
         always @(eoi) begin
           decode(decoded,highestprty);
           if(decoded== irr_masked)
@@ -27,22 +22,24 @@ module Priority_resolver(
             irr_masked=(~decoded)&(irr_masked);
             encode(irr_masked,highestprty);
           end 
-        end
-      end
-      end
+          end 
+  end
+  always @(irr) begin
+      encode(irr_masked,highestprty);
     if(highestprty<priorityisr)begin 
     priorityisr=highestprty;
     assign isprior=1;
     end
     else 
     assign isprior=0;
-    always @(inta)begin
+   end
+    always @(negedge inta)begin
       placeholder=irr&0;
       assign irr=placeholder;
-      placeholder=isr|1'd128;
+      placeholder=isr|3'd128;
       assign isr=placeholder;
     end
-  end
+ 
 
     
 
