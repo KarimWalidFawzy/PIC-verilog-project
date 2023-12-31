@@ -12,6 +12,6 @@ module encode(
         else if(i[1]==1) out=3'b001;
         else
         out=3'b000;
-    end
-assign y=out;
+    assign y=out;
+end
 endmodule

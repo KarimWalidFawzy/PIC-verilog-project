@@ -20,7 +20,7 @@ end
   reg [0:2] priorityisr;
         always @(eoi) begin
         if(ar) begin 
-          decode(decoded,highestprty);
+          decode(decoded,highestprty,1);
           ispriorreg=(decoded== irr_masked)?0:1;
           irr_masked=(decoded==irr_masked)?irr_masked:(~decoded)&(irr_masked);
           encode(irr_masked,highestprty);

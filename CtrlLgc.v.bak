@@ -8,7 +8,7 @@ module ctrllgc (
   input wrflg,
   input rdflag,
   inout [7:0] R,
-  output reg [2:0] rwadr,
+  output [2:0] rwadr,
   output reg [2:0] Y,
   input S,
   output reg buff,
@@ -63,7 +63,6 @@ module ctrllgc (
         ICW_OCW = D;
       end
       3'b011: begin
-        D[7:4] <= 4'b0000;
         uPM = D[0];
         AEOI = D[1];
         bm = D[3];
@@ -77,13 +76,11 @@ module ctrllgc (
     endcase
     wrncntr <= wrncntr + 1;
   end
- 
-  assign rwadr = wrncntr + 1;
-
+  assign rwadr = wrncntr+1;
   always @(*) begin
     if (wrncntr == 3'b100) begin 
-      ICW_OCW = D;
-      Msk = D;
+       D<= ICW_OCW;
+      Msk <= D;
     end
     // Add other conditions for wrncntr == 3'b101, 3'b110, 3'b111 if needed
   end
