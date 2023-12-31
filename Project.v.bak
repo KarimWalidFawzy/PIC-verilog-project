@@ -1,0 +1,426 @@
+module ctrllgc (
+  output reg int,
+  input inta,
+  inout [7:0] D,
+  output reg ino,
+  output reg en,
+  input a0,
+  input wrflg,
+  input rdflag,
+  inout [7:0] R,
+  output [2:0] rwadr,
+  output reg [2:0] Y,
+  input S,
+  output reg buff,
+  input CLsig,
+  output reg [7:0] Mask,
+  input [7:0] isr,
+  input [7:0] irr,
+  output reg LTIM,
+  input isprior,
+  output reg eoi,
+  output reg ar,
+  output reg reset
+);
+  reg internal_S; // Internal signal to hold the value of S
+  reg [1:0] intacntr;
+  reg [14:0] A;
+  reg LTI, uPM, AEOI;
+  wire icwflg, rdflg;
+  reg bm, IC4, SNGL;
+  reg [2:0] wrncntr;
+  reg s, Rot, Spec;
+  reg [2:0] L, MID, EOI;
+  reg [4:0] T;
+  reg [7:0] Msk, ICW_OCW, Sl, ID, rdsts;
+
+  // Assign internal_S with value of inout port S
+  always @(negedge inta) begin
+    internal_S <= S;
+  end
+
+  always @(negedge wrflg) begin
+    ICW_OCW = D;
+    case(wrncntr)
+      3'b000: begin
+        IC4 = D[0];
+        SNGL = D[1];
+        LTI = D[3];
+        A[6:4] = D[7:5];
+      end
+      3'b001: begin
+        if (uPM)
+          T = D[7:3];
+        else
+          A[14:7] = D;
+        ICW_OCW = D;
+      end
+      3'b010: begin
+        if (internal_S)
+          ID = D[2:0];
+        else
+          Sl = D;
+        ICW_OCW = D;
+      end
+      3'b011: begin
+        uPM = D[0];
+        AEOI = D[1];
+        bm = D[3];
+        if (bm) begin
+          s = ~D[2];
+          internal_S = s;
+        end
+        ICW_OCW = D;
+      end
+      // Add cases for 3'b100, 3'b101, 3'b110, 3'b111 if needed
+    endcase
+    wrncntr <= wrncntr + 1;
+  end
+  assign rwadr = wrncntr+1;
+  always @(*) begin
+    if (wrncntr == 3'b100) begin 
+       ICW_OCW<= D;
+      Msk <= D;
+    end
+    // Add other conditions for wrncntr == 3'b101, 3'b110, 3'b111 if needed
+  end
+
+  // Add logic for always@(rdflag) block
+
+  // Add logic for assign R = ICW_OCW
+
+  // Add logic for assign Y
+
+  // Add logic for assign buff
+
+  // Add logic for assign Mask
+
+  // Add logic for assign LTIM
+
+  // Add logic for always @(~inta & ~SNGL & S) block
+
+  // Add logic for always @(posedge inta) block
+
+  // Add remaining assignments and logic based on your design requirements
+
+endmodule
+module CscdeCmprtr(
+    inout [2:0] CAS,
+    input SPENn,
+    output reg CLsig,
+    input [2:0] Y,
+    input buff,
+    output reg S
+);
+
+    /* Address of the slave that was interrupted */
+    reg M;
+    reg [2:0] X;
+    reg [2:0] internal_CAS; // Internal signal for bidirectional port
+
+    assign CAS = internal_CAS; // Assign inout port value to internal signal using continuous assignment
+
+    always @(*) begin
+        if (~buff) begin
+            if (SPENn)
+                M = 1;
+            else
+                M = 0;
+        end
+        if (M /* M is equal to D[2] when we extract this info from Ctrllgc */) begin
+            X = Y;
+            internal_CAS = X; // Assign value to internal signal using blocking assignment
+        end
+        else begin
+            if (internal_CAS == Y) begin // Compare with internal signal
+                CLsig = 1; // Signal informs the ctrl lgc to release the ISR address
+            end
+            else
+                CLsig = 0;
+        end
+        S = ~M;
+    end
+
+    /*
+    1. 8259A outputs are master while the inputs are slaves 
+    2. 8259A (Master) sends the ID on CAS
+    3. Slave sends its routine 
+    */
+
+endmodule
+module decode( 
+input [0:2] in,
+output [0:7] out, 
+input en);
+  reg [0:7] outreg;
+  always@(*) begin 
+      if (en) 
+        begin
+          case (in)
+              3'b000: outreg = 8'b00000001;
+              3'b001: outreg = 8'b00000010;
+              3'b010: outreg = 8'b00000100;
+              3'b011: outreg = 8'b00001000;
+              3'b100: outreg = 8'b00010000;
+              3'b101: outreg = 8'b00100000;
+              3'b110: outreg = 8'b01000000;
+              3'b111: outreg = 8'b10000000;
+              default: outreg = 8'b00000000;
+          endcase
+      end 
+      else 
+      outreg=8'b00000000;
+    end
+assign out=outreg;
+endmodule
+
+module encode(
+    input [0:7] i,
+    output [0:2] y);
+    reg [0:2] out;
+    always@(*)begin 
+    if(i[7]==1) out=3'b111;
+        else if(i[6]==1) out=3'b110;
+        else if(i[5]==1) out=3'b101;
+        else if(i[4]==1) out=3'b100;
+        else if(i[3]==1) out=3'b011;
+        else if(i[2]==1) out=3'b010;
+        else if(i[1]==1) out=3'b001;
+        else
+        out=3'b000;
+    end
+assign y=out;
+endmodule
+
+module IMR(
+    input reg [0:7] Mask,  // OCW1 signal (9 bits)
+    output reg [0:7] imr    // Interrupt Mask Register (8 bits)
+);
+
+   always @(*) begin
+        imr <= Mask[0:7];
+    end
+
+endmodule
+
+module IRR(
+    input reset,
+    input LTIM,//For determining whether it will be edge or level triggered
+    input ir0,
+    input ir1,
+    input ir2,
+    input ir3,
+    input ir4,
+    input ir5,
+    input ir6,
+    input ir7,
+    output [7:0] irr);
+    reg [7:0] cur_irr;
+always @(reset) begin
+    cur_irr <=( reset )?8'b00000000:cur_irr;
+end
+    always @((ir0&LTIM),(ir1&LTIM),(ir2&LTIM),(ir3&LTIM),(ir4&LTIM),(ir5&LTIM),(ir6&LTIM),(ir7&LTIM))begin
+         cur_irr<={ir0,ir1,ir2,ir3,ir4,ir5,ir6,ir7};
+    end
+    always @(posedge (ir0&~LTIM), posedge (ir1&~LTIM), posedge (ir2&~LTIM), posedge (ir3&~LTIM), posedge (ir4&~LTIM), posedge (ir5&~LTIM), posedge (ir6&~LTIM), posedge (ir7&~LTIM))begin
+         cur_irr<={ir0,ir1,ir2,ir3,ir4,ir5,ir6,ir7};
+end
+assign irr=cur_irr;
+endmodule
+
+module ISR(
+    input [0:7] irr,
+    output [0:7] isr,
+    input isprior);
+    assign isr=(isprior)?irr:isr;
+endmodule
+
+module Priority_resolver(
+  input fn,     //fully nested mode
+  input ar,      //autmatic_rotation
+  input eoi,    //end of interrupt
+  inout reg[0:7] irr,  //interrupt request register
+  input reg[0:7] imr, // interrupt mask register
+  inout reg[0:7] isr, // in service register
+  output isprior,
+  input inta);
+  reg [0:7] irr_masked;
+  reg [0:7] irrreg;
+  reg [0:7] isrreg;
+  reg [0:7] placeholder;
+  always @(*)begin 
+  irr_masked = irr & (~imr);
+end
+  reg [0:2] highestprty;
+  reg [0:7] decoded;
+  reg ispriorreg;
+  reg [0:2] priorityisr;
+        always @(eoi) begin
+        if(ar) begin 
+          decode(decoded,highestprty,1);
+          ispriorreg=(decoded== irr_masked)?0:1;
+          irr_masked=(decoded==irr_masked)?irr_masked:(~decoded)&(irr_masked);
+          encode(irr_masked,highestprty);
+          end 
+  end
+  always @(irr) begin
+      if(fn)
+      encode(irr_masked,highestprty);
+    if(highestprty<priorityisr)begin 
+    priorityisr=highestprty;
+    ispriorreg=1;
+    end
+    else 
+    ispriorreg=0;
+   end
+   assign isprior=ispriorreg;
+    always @(negedge inta)begin
+      placeholder=irr&0;
+      irrreg=placeholder;
+      placeholder=isr|3'd128;
+      isrreg=placeholder;
+    end
+    assign irr=irrreg;
+    assign isr=isrreg;
+
+endmodule
+module buffer(
+inout [0:7] D,
+inout [0:7] PCadr,
+input en,
+input ino);
+/*
+D may contain: 
+-Control info to/from the Control logic
+-Status (read or write)
+-Interrupt vector bus info
+*/
+//Comes from ctrl logic and tells the 
+//buffer wether it wants to output data or obtain data
+reg bfr[0:7];
+always@(en)begin 
+  if(ino)begin
+    bfr=PCadr;
+    assign D[0:7]=bfr[0:7];
+  end
+  else begin 
+    buff=D;
+    assign PCadr=buff;
+  end
+end
+else begin
+assign D=8'bZZZZZZZZ;
+assign PCadr=8'bZZZZZZZZ;
+end
+endmodule
+
+module R_WCtrllgc(
+  input rdn,
+  input wrn,
+  input A0,
+  input CSn,
+  output wrflg,
+  output rdflag,
+  input [0:2] cadr,
+  inout [0:7] WR,
+  output b0);
+//The status is the read or write status
+reg [0:7] ICW1;
+reg [0:7] ICW2;
+reg [0:7] ICW3;
+reg [0:7] ICW4;
+reg [0:7] OCW1;
+reg [0:7] OCW2;
+reg [0:7] OCW3;
+reg [0:7] ireg;
+assign wrflg=~(wrn);
+assign rdflg=~(rdn);
+reg IC4;
+always@(~wrn) begin
+if(~(wrn|CSn))begin /** This detects pulses to see how to interact with CPU*/
+ //Starting address of service routines
+//after first pulse
+
+case(cadr)//cadress determines what the ICW will be 
+3'b001:begin if(~A0&WR[4])begin 
+  ICW1<=WR;
+  IC4<=ICW1[0];
+end 
+end
+3'b010:begin ICW2<=WR;
+end 
+3'b011:begin if(~ICW1[1]) ICW3<=WR; 
+end
+3'b100:begin if(ICW1[0]) ICW4<=WR;
+else ICW4<=8'b00000000;
+end 
+
+3'b101:begin 
+  OCW1=WR;
+  OCW1[3:4]=2'b00;// in ocw mode 
+end  
+3'b110: begin  OCW2=WR;
+end
+3'b111: begin OCW3=WR;
+end 
+endcase
+end
+//write is when I configure the controller 
+end
+
+  assign WR=(~rdn)?ireg:WR;
+always@(~rdn)begin 
+if(~(rdn|CSn))begin
+  //release status onto WR
+  case(cadr)
+  3'b111:begin 
+  ireg=OCW3;
+end
+  endcase
+end
+end
+assign b0=A0;
+//read is when i want to see the status
+endmodule
+
+module Intel8257A(
+    inout [0:7] D,
+    input NRD,
+    input NWR,
+    input NCS,
+    inout [0:2] CAS,
+    input A0,
+    input NINTA,
+    input [0:7] IR,
+    output INT,
+    input NSP_EN);
+wire [0:7] PCadr;
+wire en;
+wire ino;
+buffer(D,PCadr,en,ino);
+wire wrflg;
+wire buff;
+wire rdflg;
+wire [0:7] R;
+wire [0:2] cadr;
+wire b0;
+wire [0:2] Y;
+R_WCtrllgc(NRD,NWR,A0,NCS,wrflg,rdflg,cadr[0:2],R[0:7],b0);
+wire S;
+wire CLsig;
+reg [0:7] Mask;
+reg [0:7] irr;
+reg [0:7] isr;
+wire isprior;
+wire LTIM;
+wire reset;
+reg [0:7] imr;
+wire ar;
+wire eoi;
+CscdeCmprtr(CAS[0:2],NSP_EN,CLsig,Y[0:2],buff,S);
+ISR(irr,isr,isprior);
+ctrllgc(INT,NINTA,PCadr,ino,en,A0,wrflg,rdflg,R[0:7],cadr[0:2],Y[0:2],S,buff,CLsig,Mask,isr,irr,LTIM,isprior,eoi,ar,reset);
+IRR(reset,LTIM,IR[0],IR[1],IR[2],IR[3],IR[4],IR[5],IR[6],IR[7],irr[0:7]);
+IMR(Mask[0:7],imr[0:7]);
+Priority_resolver(~ar,ar,eoi,irr[0:7],imr[0:7],isr[0:7],isprior,NINTA);
+endmodule

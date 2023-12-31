@@ -11,22 +11,17 @@ D may contain:
 */
 //Comes from ctrl logic and tells the 
 //buffer wether it wants to output data or obtain data
-reg bfr[0:7];
-if(en)begin 
+reg [0:7] bfr;
+always@(en)begin 
   if(ino)begin
     bfr=PCadr;
-    assign D[0:7]=bfr[0:7];
   end
   else begin 
-    buff=D;
-    assign PCadr=buff;
+    bfr=D;
   end
 end
-else begin
-buff=8'bZZZZZZZZ;
-assign D=8'bZZZZZZZZ;
-assign PCadr=8'bZZZZZZZZ;
-end
+assign D=(~en)?8'bZZZZZZZZ:bfr;
+assign PCadr=(~en)?8'bZZZZZZZZ:bfr;
 endmodule
 
 module R_WCtrllgc(
