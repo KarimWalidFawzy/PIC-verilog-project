@@ -1,27 +1,25 @@
-module buffer(D[0:7],inta,PCadr[0:7],counter[0:1]);
-inout D[0:7];/*
+module buffer(
+inout [0:7] D,
+inout [0:7] PCadr,
+input en,
+input ino);
+/*
 D may contain: 
 -Control info to/from the Control logic
 -Status (read or write)
 -Interrupt vector bus info
 */
-reg bfr[0:7];
-reg Mode;
-input inta;
-inout PCadr[0:7];
-always @(negedge inta)
-/*if  MCS */
-//for first pulse
-if(counter=2b'10)
-bfr[0:7]=D[0:7];
-PCadr[0:7]=bfr[0:7];
-if(Mode)begin
-    isr<=isr&~Mode;
+//Comes from ctrl logic and tells the 
+//buffer wether it wants to output data or obtain data
+reg [0:7] bfr;
+always@(en)begin 
+  if(ino)begin
+    bfr=PCadr;
+  end
+  else begin 
+    bfr=D;
+  end
 end
-
-//for second and 3rd pulse
-//PCadr=Subroutine
-
-
-
+assign D=(~en)?8'bZZZZZZZZ:bfr;
+assign PCadr=(~en)?8'bZZZZZZZZ:bfr;
 endmodule
