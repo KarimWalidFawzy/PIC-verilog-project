@@ -1,5 +1,3 @@
-`timescale 1ns/1ps // Define timescale
-
 module testbench();
 
   // Declare signals
