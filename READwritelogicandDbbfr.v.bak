@@ -83,7 +83,7 @@ end
 //write is when I configure the controller 
 end
 
-  assign WR=(~rdn)?ireg:WR;
+  assign WR=(rdn)?ireg:WR;
 always@(~rdn)begin 
 if(~(rdn|CSn))begin
   //release status onto WR

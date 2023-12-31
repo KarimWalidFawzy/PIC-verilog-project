@@ -3,7 +3,7 @@ module IMR(
     output reg [0:7] imr    // Interrupt Mask Register (8 bits)
 );
 
-   always @* begin
+   always @(*) begin
         imr <= Mask[0:7];
     end
 

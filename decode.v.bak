@@ -4,7 +4,6 @@ input [0:2] in,
 output [0:7] out, 
 input en);
   reg [0:7] outreg;
-  always@(*) begin 
       if (en) 
         begin
           case (in)
@@ -21,6 +20,5 @@ input en);
       end 
       else 
       outreg=8'b00000000;
-    end
 assign out=outreg;
 endmodule

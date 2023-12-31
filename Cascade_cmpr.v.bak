@@ -10,7 +10,7 @@ module CscdeCmprtr(
     /* Address of the slave that was interrupted */
     reg M;
     reg [2:0] X;
-    reg [2:0] internal_CAS; // Internal signal for bidirectional port
+    wire [2:0] internal_CAS; // Internal signal for bidirectional port
 
     assign CAS = internal_CAS; // Assign inout port value to internal signal using continuous assignment
 

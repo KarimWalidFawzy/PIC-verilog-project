@@ -78,7 +78,7 @@ module ctrllgc (
     wrncntr <= wrncntr + 1;
   end
  
-  assign rwadr = wrncntr;
+  assign rwadr = wrncntr + 1;
 
   always @(*) begin
     if (wrncntr == 3'b100) begin 

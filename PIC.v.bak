@@ -29,7 +29,7 @@ reg [0:7] isr;
 wire isprior;
 wire LTIM;
 wire reset;
-reg [0:7] imr;
+reg imr[0:7];
 wire ar;
 wire eoi;
 CscdeCmprtr(CAS[0:2],NSP_EN,CLsig,Y[0:2],buff,S);
