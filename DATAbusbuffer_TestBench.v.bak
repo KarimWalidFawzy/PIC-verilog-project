@@ -19,9 +19,9 @@ module DATAbusbuffer_TestBench();
   // Stimulus generation
   initial begin
     // Initialize inputs
-    D_drive = 8'b00000000;
+    D = 8'b00000000;
     en = 0;
-    PCadr_drive = 8'b00000000;
+    PCadr = 8'b00000000;
     
     #10; // Wait for stabilization
     
@@ -30,7 +30,7 @@ module DATAbusbuffer_TestBench();
     
     // Apply some test stimuli
     en = 1;
-    D_drive = 8'b10101010; // Some data
+    D = 8'b10101010; // Some data
     ino = 1'b1; // Assuming the counter state changes for a test case
     
     #10; // Wait for some time

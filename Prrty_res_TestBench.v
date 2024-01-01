@@ -4,6 +4,7 @@ module Prrty_res_TestBench();
   reg fn, ar, eoi, inta;
   reg [7:0] imr;
   wire [7:0] isr,irr;
+  reg [7:0] isr_drive,irr_drive;
   wire isprior;
 
   // Instantiate the module to be tested
@@ -25,9 +26,9 @@ module Prrty_res_TestBench();
     ar = 0;
     eoi = 0;
     inta = 0;
-    irr = 8'b00000000;
+    irr_drive = 8'b00000000;
     imr = 8'b11111111;
-    isr = 8'b00000000;
+    isr_drive = 8'b00000000;
 
     #10; // Wait for stabilization
     
@@ -39,7 +40,7 @@ module Prrty_res_TestBench();
     ar = 1;
     eoi = 1;
     inta = 1;
-    irr = 8'b10101010; // Simulate some interrupt request bits
+    irr_drive = 8'b10101010; // Simulate some interrupt request bits
     
     #10; // Wait for some time
     

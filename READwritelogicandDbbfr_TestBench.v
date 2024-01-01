@@ -7,6 +7,7 @@ module READwritelogicandDbbfr_TestBench();
   wire wrflg, rdflg, b0;
   reg [2:0] cadr;
   wire [7:0] WR;
+  reg [7:0] WR_drive;
   reg [7:0] ireg;
   // Instantiate the R_WCtrllgc module to be tested
   READwritelogicandDbbfr dut_READwritelogicandDbbfr (
@@ -20,7 +21,7 @@ module READwritelogicandDbbfr_TestBench();
     .WR(WR[7:0]),
     .b0(b0)
   );
-
+  assign WR=WR_drive;
   // Stimulus generation for buffer module
   initial begin
     // Initialize inputs for buffer module
@@ -29,7 +30,7 @@ module READwritelogicandDbbfr_TestBench();
     A0 = 0;
     CSn = 0;
     cadr = 3'b000;
-    WR = 8'b00000000;
+    WR_drive = 8'b00000000;
     ireg = 8'b00000000;
 
     #20; // Wait for stabilization
@@ -40,7 +41,7 @@ module READwritelogicandDbbfr_TestBench();
     A0 = 1;
     CSn = 1;
     cadr = 3'b111;
-    WR = 8'b10101010; // Simulate some data
+    WR_drive = 8'b10101010; // Simulate some data
     
     #20; // Wait for some time
     

@@ -1,6 +1,7 @@
 module Cascade_cmpr_TestBench();
 
   // Declare signals
+  reg [2:0] CAS_drive;
   wire [2:0] CAS;
   reg  [2:0] Y;
   reg SPENn, buff;
@@ -14,11 +15,11 @@ module Cascade_cmpr_TestBench();
     .Y(Y[2:0]),
     .buff(buff),
     .S(S));
-
+  assign 
   // Stimulus generation
   initial begin
     // Initialize inputs
-    CAS = 3'b000;
+    CAS_drive= 3'b000;
     SPENn = 0;
     Y = 3'b001;
     buff = 1'b0;

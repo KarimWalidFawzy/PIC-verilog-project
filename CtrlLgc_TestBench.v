@@ -5,6 +5,8 @@ module CtrlLgc_TestBench();
   wire [7:0] D,R;
   wire  [7:0] Mask,isr,irr;
   wire [2:0] rwadr, Y;
+  reg [7:0] D_drive,R_drive,Mask_drive,isr_drive,irr_drive,rw_drive;
+  reg [2:0] Y_drive;
   wire int, ino, en, buff, LTIM, eoi, ar;
 
   // Instantiate the module to be tested
@@ -23,7 +25,7 @@ module CtrlLgc_TestBench();
     .S(S),
     .buff(buff),
     .CLsig(CLsig),
-    .Mask(Mask),
+    .Mask(Mask[7:0]),
     .isr(isr[7:0]),
     .irr(irr[7:0]),
     .LTIM(LTIM),
@@ -31,7 +33,13 @@ module CtrlLgc_TestBench();
     .eoi(eoi),
     .ar(ar),
     .reset(reset));
-
+    assign D=D_drive;
+    assign R=R_drive;
+    assign Mask=Mask_drive;
+    assign isr=isr_drive;
+    assign irr=irr_drive; 
+    assign rwadr=rw_drive;
+    assign Y=Y_drive;   
   // Stimulus generation
   initial begin
     // Initialize inputs
@@ -42,13 +50,13 @@ module CtrlLgc_TestBench();
     S = 0;
     CLsig = 0;
     isprior = 0;
-    isr = 8'b0;
-    irr = 8'b0;
+    isr_drive = 8'b0;
+    irr_drive = 8'b0;
     reset = 0;
     
     // Apply some values to D and R
-    D = 8'b10101010;
-    R = 8'b11001100;
+    D_drive = 8'b10101010;
+    R_drive = 8'b11001100;
 
     #10; // Wait for stabilization
     
@@ -60,7 +68,7 @@ module CtrlLgc_TestBench();
     inta = 1;
     wrflg = 1;
     S = 1;
-    isr = 8'b10101010;
+    isr_drive = 8'b10101010;
     #10; // Wait for some time
     
     // Display outputs
