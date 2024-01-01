@@ -12,7 +12,7 @@ module PIC(
 wire [0:7] PCadr;
 wire en;
 wire ino;
-buffer(D,PCadr,en,ino);
+DATAbusbuffer(D,PCadr,en,ino);
 wire wrflg;
 wire buff;
 wire rdflg;
@@ -20,7 +20,7 @@ wire [0:7] R;
 wire [0:2] cadr;
 wire b0;
 wire [0:2] Y;
-R_WCtrllgc(NRD,NWR,A0,NCS,wrflg,rdflg,cadr[0:2],R[0:7],b0);
+READwritelogicandDbbfr(NRD,NWR,A0,NCS,wrflg,rdflg,cadr[0:2],R[0:7],b0);
 wire S;
 wire CLsig;
 reg [0:7] Mask;

@@ -1,4 +1,48 @@
-module ctrllgc (
+module Cascade_cmpr(
+    inout [2:0] CAS,
+    input SPENn,
+    output reg CLsig,
+    input [2:0] Y,
+    input buff,
+    output reg S
+);
+
+    /* Address of the slave that was interrupted */
+    reg M;
+    reg [2:0] X;
+    reg [2:0] internal_CAS; // Internal signal for bidirectional port
+
+    assign CAS = internal_CAS; // Assign inout port value to internal signal using continuous assignment
+
+    always @(*) begin
+        if (~buff) begin
+            if (SPENn)
+                M = 1;
+            else
+                M = 0;
+        end
+        if (M /* M is equal to D[2] when we extract this info from Ctrllgc */) begin
+            X = Y;
+            internal_CAS = X; // Assign value to internal signal using blocking assignment
+        end
+        else begin
+            if (internal_CAS == Y) begin // Compare with internal signal
+                CLsig = 1; // Signal informs the ctrl lgc to release the ISR address
+            end
+            else
+                CLsig = 0;
+        end
+        S = ~M;
+    end
+
+    /*
+    1. 8259A outputs are master while the inputs are slaves 
+    2. 8259A (Master) sends the ID on CAS
+    3. Slave sends its routine 
+    */
+
+endmodule
+module CtrlLgc (
   output reg int,
   input inta,
   inout [7:0] D,
@@ -104,50 +148,32 @@ module ctrllgc (
   // Add remaining assignments and logic based on your design requirements
 
 endmodule
-module CscdeCmprtr(
-    inout [2:0] CAS,
-    input SPENn,
-    output reg CLsig,
-    input [2:0] Y,
-    input buff,
-    output reg S
-);
-
-    /* Address of the slave that was interrupted */
-    reg M;
-    reg [2:0] X;
-    reg [2:0] internal_CAS; // Internal signal for bidirectional port
-
-    assign CAS = internal_CAS; // Assign inout port value to internal signal using continuous assignment
-
-    always @(*) begin
-        if (~buff) begin
-            if (SPENn)
-                M = 1;
-            else
-                M = 0;
-        end
-        if (M /* M is equal to D[2] when we extract this info from Ctrllgc */) begin
-            X = Y;
-            internal_CAS = X; // Assign value to internal signal using blocking assignment
-        end
-        else begin
-            if (internal_CAS == Y) begin // Compare with internal signal
-                CLsig = 1; // Signal informs the ctrl lgc to release the ISR address
-            end
-            else
-                CLsig = 0;
-        end
-        S = ~M;
-    end
-
-    /*
-    1. 8259A outputs are master while the inputs are slaves 
-    2. 8259A (Master) sends the ID on CAS
-    3. Slave sends its routine 
-    */
-
+module DATAbusbuffer(
+inout [0:7] D,
+inout [0:7] PCadr,
+input en,
+input ino);
+/*
+D may contain: 
+-Control info to/from the Control logic
+-Status (read or write)
+-Interrupt vector bus info
+*/
+//Comes from ctrl logic and tells the 
+//buffer wether it wants to output data or obtain data
+reg [0:7] bfr;
+always@(en)begin 
+  if(ino)begin
+    bfr=PCadr;
+  end
+  else begin 
+    bfr=D;
+  end
+end
+assign D=(~en)?8'bZZZZZZZZ:bfr;
+assign PCadr=(~en)?8'bZZZZZZZZ:bfr;
 endmodule
+
 module decode( 
 input [0:2] in,
 output [0:7] out, 
@@ -173,8 +199,7 @@ input en);
     end
 assign out=outreg;
 endmodule
-
-module encode(
+module encoder(
     input [0:7] i,
     output [0:2] y);
     reg [0:2] out;
@@ -191,7 +216,6 @@ module encode(
     end
 assign y=out;
 endmodule
-
 module IMR(
     input reg [0:7] Mask,  // OCW1 signal (9 bits)
     output reg [0:7] imr    // Interrupt Mask Register (8 bits)
@@ -200,9 +224,7 @@ module IMR(
    always @(*) begin
         imr <= Mask[0:7];
     end
-
 endmodule
-
 module IRR(
     input reset,
     input LTIM,//For determining whether it will be edge or level triggered
@@ -227,7 +249,6 @@ end
 end
 assign irr=cur_irr;
 endmodule
-
 module ISR(
     input [0:7] irr,
     output [0:7] isr,
@@ -235,7 +256,75 @@ module ISR(
     assign isr=(isprior)?irr:isr;
 endmodule
 
-module Priority_resolver(
+module READwritelogicandDbbfr(
+  input rdn,
+  input wrn,
+  input A0,
+  input CSn,
+  output wrflg,
+  output rdflag,
+  input [0:2] cadr,
+  inout [0:7] WR,
+  output b0);
+//The status is the read or write status
+reg [0:7] ICW1;
+reg [0:7] ICW2;
+reg [0:7] ICW3;
+reg [0:7] ICW4;
+reg [0:7] OCW1;
+reg [0:7] OCW2;
+reg [0:7] OCW3;
+reg [0:7] ireg;
+assign wrflg=~(wrn);
+assign rdflg=~(rdn);
+reg IC4;
+always@(~wrn) begin
+if(~(wrn|CSn))begin /** This detects pulses to see how to interact with CPU*/
+ //Starting address of service routines
+//after first pulse
+
+case(cadr)//cadress determines what the ICW will be 
+3'b001:begin if(~A0&WR[4])begin 
+  ICW1<=WR;
+  IC4<=ICW1[0];
+end 
+end
+3'b010:begin ICW2<=WR;
+end 
+3'b011:begin if(~ICW1[1]) ICW3<=WR; 
+end
+3'b100:begin if(ICW1[0]) ICW4<=WR;
+else ICW4<=8'b00000000;
+end 
+
+3'b101:begin 
+  OCW1=WR;
+  OCW1[3:4]=2'b00;// in ocw mode 
+end  
+3'b110: begin  OCW2=WR;
+end
+3'b111: begin OCW3=WR;
+end 
+endcase
+end
+//write is when I configure the controller 
+end
+
+  assign WR=(~rdn)?ireg:WR;
+always@(~rdn)begin 
+if(~(rdn|CSn))begin
+  //release status onto WR
+  case(cadr)
+  3'b111:begin 
+  ireg=OCW3;
+end
+  endcase
+end
+end
+assign b0=A0;
+//read is when i want to see the status
+endmodule
+module Prrty_res(
   input fn,     //fully nested mode
   input ar,      //autmatic_rotation
   input eoi,    //end of interrupt
@@ -282,105 +371,8 @@ end
     end
     assign irr=irrreg;
     assign isr=isrreg;
-
 endmodule
-
-module buffer(
-inout [0:7] D,
-inout [0:7] PCadr,
-input en,
-input ino);
-/*
-D may contain: 
--Control info to/from the Control logic
--Status (read or write)
--Interrupt vector bus info
-*/
-//Comes from ctrl logic and tells the 
-//buffer wether it wants to output data or obtain data
-reg [0:7] bfr;
-always@(en)begin 
-  if(ino)begin
-    bfr=PCadr;
-  end
-  else begin 
-    bfr=D;
-  end
-end
-assign D=(~en)?8'bZZZZZZZZ:bfr;
-assign PCadr=(~en)?8'bZZZZZZZZ:bfr;
-endmodule
-
-module R_WCtrllgc(
-  input rdn,
-  input wrn,
-  input A_0,
-  input CSn,
-  output wrflg,
-  output rdflag,
-  input [0:2] cadr,
-  inout [0:7] WR,
-  output b0);
-//The status is the read or write status
-reg [0:7] ICW1;
-reg [0:7] ICW2;
-reg [0:7] ICW3;
-reg [0:7] ICW4;
-reg [0:7] OCW1;
-reg [0:7] OCW2;
-reg [0:7] OCW3;
-reg [0:7] ireg;
-assign wrflg=~(wrn);
-assign rdflg=~(rdn);
-reg IC4;
-always@(~wrn) begin
-if(~(wrn|CSn))begin /** This detects pulses to see how to interact with CPU*/
- //Starting address of service routines
-//after first pulse
-
-case(cadr)//cadress determines what the ICW will be 
-3'b001:begin if(~A_0&WR[4])begin 
-  ICW1<=WR;
-  IC4<=ICW1[0];
-end 
-end
-3'b010:begin ICW2<=WR;
-end 
-3'b011:begin if(~ICW1[1]) ICW3<=WR; 
-end
-3'b100:begin if(ICW1[0]) ICW4<=WR;
-else ICW4<=8'b00000000;
-end 
-
-3'b101:begin 
-  OCW1=WR;
-  OCW1[3:4]=2'b00;// in ocw mode 
-end  
-3'b110: begin  OCW2=WR;
-end
-3'b111: begin OCW3=WR;
-end 
-endcase
-end
-//write is when I configure the controller 
-end
-
-  assign WR=(~rdn)?ireg:WR;
-always@(~rdn)begin 
-if(~(rdn|CSn))begin
-  //release status onto WR
-  case(cadr)
-  3'b111:begin 
-  ireg=OCW3;
-end
-  endcase
-end
-end
-assign b0=A_0;
-//read is when i want to see the status
-endmodule
-
-module Intel8257A(
+module PIC(
     inout [0:7] D,
     input NRD,
     input NWR,
@@ -394,7 +386,7 @@ module Intel8257A(
 wire [0:7] PCadr;
 wire en;
 wire ino;
-buffer(D,PCadr,en,ino);
+buffer(D,PCadr,en,ino) buffer;
 wire wrflg;
 wire buff;
 wire rdflg;
@@ -414,10 +406,10 @@ wire reset;
 reg [0:7] imr;
 wire ar;
 wire eoi;
-CscdeCmprtr(CAS[0:2],NSP_EN,CLsig,Y[0:2],buff,S);
+Cascade_cmpr(CAS[0:2],NSP_EN,CLsig,Y[0:2],buff,S);
 ISR(irr,isr,isprior);
-ctrllgc(INT,NINTA,PCadr,ino,en,A0,wrflg,rdflg,R[0:7],cadr[0:2],Y[0:2],S,buff,CLsig,Mask,isr,irr,LTIM,isprior,eoi,ar,reset);
+CtrlLgc(INT,NINTA,PCadr,ino,en,A0,wrflg,rdflg,R[0:7],cadr[0:2],Y[0:2],S,buff,CLsig,Mask,isr,irr,LTIM,isprior,eoi,ar,reset);
 IRR(reset,LTIM,IR[0],IR[1],IR[2],IR[3],IR[4],IR[5],IR[6],IR[7],irr[0:7]);
 IMR(Mask[0:7],imr[0:7]);
-Priority_resolver(~ar,ar,eoi,irr[0:7],imr[0:7],isr[0:7],isprior,NINTA);
+Prrty_res(~ar,ar,eoi,irr[0:7],imr[0:7],isr[0:7],isprior,NINTA);
 endmodule

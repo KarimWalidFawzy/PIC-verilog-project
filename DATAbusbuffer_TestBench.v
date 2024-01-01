@@ -1,0 +1,42 @@
+module DATAbusbuffer_TestBench();
+
+  // Declare signals
+  reg [7:0] D;
+  reg en;
+  reg [7:0] PCadr;
+  reg ino; // Assuming isr is an output
+  
+  // Instantiate the module to be tested
+  DATAbusbuffer dut (
+    .D(D),
+    .PCadr(PCadr),
+    .en(en),
+    .ino(ino)
+  );
+
+  // Stimulus generation
+  initial begin
+    // Initialize inputs
+    D = 8'b00000000;
+    en = 0;
+    PCadr = 8'b00000000;
+    
+    #10; // Wait for stabilization
+    
+    // Display initial inputs
+    $display("Initial Inputs: D=%b, en=%b, PCadr=%b", D, en, PCadr);
+    
+    // Apply some test stimuli
+    en = 1;
+    D = 8'b10101010; // Some data
+    ino = 1'b1; // Assuming the counter state changes for a test case
+    
+    #10; // Wait for some time
+    
+    // Display outputs
+    $display("Outputs: en=%b, D=%b, PCadr=%b",en ,D ,PCadr);
+    
+    $finish;
+  end
+
+endmodule
