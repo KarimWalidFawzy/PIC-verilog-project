@@ -16,7 +16,7 @@ module IRR_TestBench();
     .ir5(ir5),
     .ir6(ir6),
     .ir7(ir7),
-    .irr(irr)
+    .irr(irr[7:0])
   );
 
   // Stimulus generation

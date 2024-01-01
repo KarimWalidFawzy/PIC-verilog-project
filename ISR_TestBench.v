@@ -7,8 +7,8 @@ module ISR_TestBench();
 
   // Instantiate the module to be tested
   ISR dut (
-    .irr(irr),
-    .isr(isr),
+    .irr(irr[7:0]),
+    .isr(isr[7:0]),
     .isprior(isprior)
   );
 

@@ -1,9 +1,8 @@
 module CtrlLgc_TestBench();
 
   // Declare signals
-  reg inta, a0, wrflg, rdflag, S, CLsig, isprior, reset;
-  wire [7:0] D,R;
-  wire  [7:0] Mask,isr,irr;
+  reg inta, a0, wrflg, rdflag, S, CLsig, isprior, isr, irr, reset;
+  reg [7:0] D, R, Mask;
   wire [2:0] rwadr, Y;
   wire int, ino, en, buff, LTIM, eoi, ar;
 
@@ -11,26 +10,27 @@ module CtrlLgc_TestBench();
   CtrlLgc dut (
     .int(int),
     .inta(inta),
-    .D(D[7:0]),
+    .D(D),
     .ino(ino),
     .en(en),
     .a0(a0),
     .wrflg(wrflg),
     .rdflag(rdflag),
-    .R(R[7:0]),
+    .R(R),
     .rwadr(rwadr),
-    .Y(Y[2:0]),
+    .Y(Y),
     .S(S),
     .buff(buff),
     .CLsig(CLsig),
     .Mask(Mask),
-    .isr(isr[7:0]),
-    .irr(irr[7:0]),
+    .isr(isr),
+    .irr(irr),
     .LTIM(LTIM),
     .isprior(isprior),
     .eoi(eoi),
     .ar(ar),
-    .reset(reset));
+    .reset(reset)
+  );
 
   // Stimulus generation
   initial begin

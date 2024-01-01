@@ -1,15 +1,15 @@
 module DATAbusbuffer_TestBench();
 
   // Declare signals
-  reg [7:0] D;
+  wire [7:0] D;
   reg en;
-  reg [7:0] PCadr;
+  wire [7:0] PCadr;
   reg ino; // Assuming isr is an output
   
   // Instantiate the module to be tested
   DATAbusbuffer dut (
-    .D(D),
-    .PCadr(PCadr),
+    .D(D[7:0]),
+    .PCadr(PCadr[7:0]),
     .en(en),
     .ino(ino)
   );

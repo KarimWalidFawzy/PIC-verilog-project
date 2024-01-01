@@ -2,7 +2,8 @@ module Prrty_res_TestBench();
 
   // Declare signals
   reg fn, ar, eoi, inta;
-  reg [7:0] irr, imr, isr;
+  reg [7:0] imr;
+  wire [7:0] isr,irr;
   wire isprior;
 
   // Instantiate the module to be tested
@@ -10,9 +11,9 @@ module Prrty_res_TestBench();
     .fn(fn),
     .ar(ar),
     .eoi(eoi),
-    .irr(irr),
-    .imr(imr),
-    .isr(isr),
+    .irr(irr[7:0]),
+    .imr(imr[7:0]),
+    .isr(isr[7:0]),
     .isprior(isprior),
     .inta(inta)
   );

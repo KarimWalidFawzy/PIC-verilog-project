@@ -11,14 +11,14 @@ module PICtestbench();
   
   // Instantiate the Intel8257A module to be tested
   PIC dut (
-    .D(D),
+    .D(D[7:0]),
     .NRD(NRD),
     .NWR(NWR),
     .NCS(NCS),
-    .CAS(CAS),
+    .CAS(CAS[2:0]),
     .A0(A0),
     .NINTA(NINTA),
-    .IR(IR),
+    .IR(IR[7:0]),
     .INT(INT),
     .NSP_EN(NSP_EN)
   );
