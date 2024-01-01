@@ -1,4 +1,4 @@
-module CscdeCmprtr(
+module Cascade_cmpr(
     inout [2:0] CAS,
     input SPENn,
     output reg CLsig,

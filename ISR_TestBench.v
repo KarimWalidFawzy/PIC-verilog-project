@@ -1,4 +1,4 @@
-module testbench();
+module ISR_TestBench();
 
   // Declare signals
   reg [7:0] irr;

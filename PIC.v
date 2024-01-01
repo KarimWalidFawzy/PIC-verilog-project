@@ -1,4 +1,4 @@
-module Intel8257A(
+module PIC(
     inout [0:7] D,
     input NRD,
     input NWR,
@@ -32,10 +32,10 @@ wire reset;
 reg [0:7] imr;
 wire ar;
 wire eoi;
-CscdeCmprtr(CAS[0:2],NSP_EN,CLsig,Y[0:2],buff,S);
+Cascade_cmpr(CAS[0:2],NSP_EN,CLsig,Y[0:2],buff,S);
 ISR(irr,isr,isprior);
-ctrllgc(INT,NINTA,PCadr,ino,en,A0,wrflg,rdflg,R[0:7],cadr[0:2],Y[0:2],S,buff,CLsig,Mask,isr,irr,LTIM,isprior,eoi,ar,reset);
+CtrlLgc(INT,NINTA,PCadr,ino,en,A0,wrflg,rdflg,R[0:7],cadr[0:2],Y[0:2],S,buff,CLsig,Mask,isr,irr,LTIM,isprior,eoi,ar,reset);
 IRR(reset,LTIM,IR[0],IR[1],IR[2],IR[3],IR[4],IR[5],IR[6],IR[7],irr[0:7]);
 IMR(Mask[0:7],imr[0:7]);
-Priority_resolver(~ar,ar,eoi,irr[0:7],imr[0:7],isr[0:7],isprior,NINTA);
+Prrty_res(~ar,ar,eoi,irr[0:7],imr[0:7],isr[0:7],isprior,NINTA);
 endmodule

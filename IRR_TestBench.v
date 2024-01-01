@@ -1,4 +1,4 @@
-module testbench();
+module IRR_TestBench();
 
   // Declare signals
   reg reset, LTIM, ir0, ir1, ir2, ir3, ir4, ir5, ir6, ir7;

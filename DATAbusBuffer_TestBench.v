@@ -1,47 +1,40 @@
-module testbench();
+module DATAbusbuffer_TestBench();
 
   // Declare signals
   reg [7:0] D;
-  reg inta;
+  reg en;
   reg [7:0] PCadr;
-  reg [1:0] counter;
-  wire [7:0] bfr;
-  wire Mode;
-  reg isr; // Assuming isr is an output
+  reg ino; // Assuming isr is an output
   
   // Instantiate the module to be tested
-  buffer dut (
+  DATAbusbuffer dut (
     .D(D),
-    .inta(inta),
     .PCadr(PCadr),
-    .counter(counter),
-    .bfr(bfr),
-    .Mode(Mode),
-    .isr(isr)
+    .en(en),
+    .ino(ino)
   );
 
   // Stimulus generation
   initial begin
     // Initialize inputs
     D = 8'b00000000;
-    inta = 0;
+    en = 0;
     PCadr = 8'b00000000;
-    counter = 2'b00; // Assuming the initial state of counter
     
     #10; // Wait for stabilization
     
     // Display initial inputs
-    $display("Initial Inputs: D=%b, inta=%b, PCadr=%b, counter=%b", D, inta, PCadr, counter);
+    $display("Initial Inputs: D=%b, en=%b, PCadr=%b", D, en, PCadr);
     
     // Apply some test stimuli
-    inta = 1;
+    en = 1;
     D = 8'b10101010; // Some data
-    counter = 2'b10; // Assuming the counter state changes for a test case
+    ino = 1'b1; // Assuming the counter state changes for a test case
     
     #10; // Wait for some time
     
     // Display outputs
-    $display("Outputs: bfr=%b, Mode=%b, isr=%b", bfr, Mode, isr);
+    $display("Outputs: en=%b, D=%b, PCadr=%b",en ,D ,PCadr);
     
     $finish;
   end

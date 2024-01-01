@@ -1,4 +1,4 @@
-module testbench();
+module CtrlLgc_TestBench();
 
   // Declare signals
   reg inta, a0, wrflg, rdflag, S, CLsig, isprior, isr, irr, reset;
@@ -7,7 +7,7 @@ module testbench();
   wire int, ino, en, buff, LTIM, eoi, ar;
 
   // Instantiate the module to be tested
-  ctrllgc dut (
+  CtrlLgc dut (
     .int(int),
     .inta(inta),
     .D(D),

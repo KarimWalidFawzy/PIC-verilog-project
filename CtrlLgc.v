@@ -1,4 +1,4 @@
-module ctrllgc (
+module CtrlLgc (
   output reg int,
   input inta,
   inout [7:0] D,

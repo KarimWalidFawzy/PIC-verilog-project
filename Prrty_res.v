@@ -1,4 +1,4 @@
-module Priority_resolver(
+module Prrty_res(
   input fn,     //fully nested mode
   input ar,      //autmatic_rotation
   input eoi,    //end of interrupt

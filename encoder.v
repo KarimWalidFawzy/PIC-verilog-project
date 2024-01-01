@@ -1,4 +1,4 @@
-module encode(
+module encoder(
     input [0:7] i,
     output [0:2] y);
     reg [0:2] out;

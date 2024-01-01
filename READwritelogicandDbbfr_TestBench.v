@@ -1,4 +1,4 @@
-module testbench();
+module READwritelogicandDbbfr_TestBench();
 
   // Declare signals for buffer module
   reg [7:0] D_buffer, PCadr_buffer;
@@ -10,17 +10,8 @@ module testbench();
   reg [2:0] cadr;
   reg [7:0] WR;
   reg [7:0] ireg;
-  
-  // Instantiate the buffer module to be tested
-  buffer dut_buffer (
-    .D(D_buffer),
-    .PCadr(PCadr_buffer),
-    .en(en_buffer),
-    .ino(ino_buffer)
-  );
-
   // Instantiate the R_WCtrllgc module to be tested
-  R_WCtrllgc dut_R_WCtrllgc (
+  READwritelogicandDbbfr dut_READwritelogicandDbbfr (
     .rdn(rdn),
     .wrn(wrn),
     .A0(A0),
@@ -51,10 +42,6 @@ module testbench();
     
     // Display outputs for buffer module
     $display("Buffer Module Outputs: D=%b, PCadr=%b", D_buffer, PCadr_buffer);
-  end
-
-  // Stimulus generation for R_WCtrllgc module
-  initial begin
     // Initialize inputs for R_WCtrllgc module
     rdn = 0;
     wrn = 0;

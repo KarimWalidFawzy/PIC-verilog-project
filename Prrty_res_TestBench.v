@@ -1,4 +1,4 @@
-module testbench();
+module Prrty_res_TestBench();
 
   // Declare signals
   reg fn, ar, eoi, inta;
@@ -6,7 +6,7 @@ module testbench();
   wire isprior;
 
   // Instantiate the module to be tested
-  Priority_resolver dut (
+  Prrty_res dut (
     .fn(fn),
     .ar(ar),
     .eoi(eoi),

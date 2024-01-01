@@ -1,4 +1,4 @@
-module testbench();
+module PICtestbench();
 
   // Declare signals
   reg [7:0] D;
@@ -10,7 +10,7 @@ module testbench();
   wire [0:2] cadr, Y;
   
   // Instantiate the Intel8257A module to be tested
-  Intel8257A dut (
+  PIC dut (
     .D(D),
     .NRD(NRD),
     .NWR(NWR),

@@ -1,4 +1,4 @@
-module buffer(
+module DATAbusbuffer(
 inout [0:7] D,
 inout [0:7] PCadr,
 input en,
