@@ -1,4 +1,4 @@
-module ctrllgc (
+module CtrlLgc (
   output reg int,
   input inta,
   inout [7:0] D,
@@ -9,17 +9,17 @@ module ctrllgc (
   input rdflag,
   inout [7:0] R,
   output [2:0] rwadr,
-  output reg [2:0] Y,
+  output [2:0] Y,
   input S,
-  output reg buff,
+  output buff,
   input CLsig,
   output reg [7:0] Mask,
   input [7:0] isr,
   input [7:0] irr,
-  output reg LTIM,
+  output LTIM,
   input isprior,
   output reg eoi,
-  output reg ar,
+  output ar,
   output reg reset
 );
   reg internal_S; // Internal signal to hold the value of S
@@ -30,16 +30,20 @@ module ctrllgc (
   reg bm, IC4, SNGL;
   reg [2:0] wrncntr;
   reg s, Rot, Spec;
-  reg [2:0] L, MID, EOI;
+  reg [2:0] L,Readint, MID, EOI;
   reg [4:0] T;
   reg [7:0] Msk, ICW_OCW, Sl, ID, rdsts;
-
+  reg [2:0] id;
+  reg [7:0] internal_D;
   // Assign internal_S with value of inout port S
   always @(negedge inta) begin
     internal_S <= S;
+    reset<=1;
   end
 
-  always @(negedge wrflg) begin
+  always @(posedge wrflg) begin
+    en=1;
+    ino=1;
     ICW_OCW = D;
     case(wrncntr)
       3'b000: begin
@@ -74,33 +78,98 @@ module ctrllgc (
       end
       // Add cases for 3'b100, 3'b101, 3'b110, 3'b111 if needed
     endcase
-    wrncntr <= wrncntr + 1;
+    wrncntr = wrncntr + 1;
   end
   assign rwadr = wrncntr+1;
-  always @(*) begin
+  always @(wrflg) begin
+    en=1;
+    ino=1;
     if (wrncntr == 3'b100) begin 
-       D<= ICW_OCW;
+       ICW_OCW<= D;
       Msk <= D;
     end
+  if(wrncntr==101)begin
+    L[2:0]=D[2:0];
+    EOI=D[5];
+    Rot=D[7];
+    Spec=D[6];
+    ICW_OCW=D;
+   end
+  if(wrncntr==110)begin 
+    ICW_OCW=D;
+  end
     // Add other conditions for wrncntr == 3'b101, 3'b110, 3'b111 if needed
   end
-
+assign D=internal_D;
   // Add logic for always@(rdflag) block
+  always@(rdflag) begin 
+    ino<=0;
+    en<=1;
+    if(~a0)begin 
+    wrncntr<=3'b110;
+    Readint<=R[1:0];
+    if(R[1])begin 
+      if(R[0])begin  
+      rdsts[7:0]<=irr[7:0];
+      internal_D[7:0]<=rdsts[7:0];
+      end
+      else begin 
+      rdsts=isr[7:0];
+      internal_D[7:0]=rdsts[7:0];
+      end
+    end
+  end
+  else begin 
+    internal_D=Msk[7:0];
+  end
+  end
+  always @(*) begin
+    if(Sl&isr)
+    encode(Sl,id);
+    Mask=Msk;
+  end
 
   // Add logic for assign R = ICW_OCW
-
+  assign R=ICW_OCW;
+  assign Y=S?(id):(Sl&isr)?id:Y;
   // Add logic for assign Y
-
   // Add logic for assign buff
-
   // Add logic for assign Mask
-
   // Add logic for assign LTIM
-
+  assign buff=bm;
+  assign LTIM=LTI;
   // Add logic for always @(~inta & ~SNGL & S) block
+  always @(~inta & ~SNGL & S)begin
+  /*Insert condition for second pulse here */
+  if(CLsig)begin 
+    en<=1;
+    encode(isr,MID[2:0]);
+    internal_D[7:3]=T[4:0];
+    internal_D[2:0]=MID[2:0];
+  end
+end
+
 
   // Add logic for always @(posedge inta) block
-
+always @(posedge inta) begin
+  if(intacntr[1])begin
+    reset<=1'b1;
+    en <=1'b1;
+    ino<=1'b0;
+    if(AEOI)begin
+      eoi<=1'b1;
+    end
+    else begin
+      if(internal_D[7])
+      eoi<=1'b1;
+    end
+    end
+    intacntr<=intacntr+1; 
+end
   // Add remaining assignments and logic based on your design requirements
+always@(isprior) begin
+int<=isprior;
+end
+assign ar=Rot;
 
 endmodule
